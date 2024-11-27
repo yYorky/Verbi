@@ -142,14 +142,7 @@ def handle_voice_assistant():
         truncated_chat_history.insert(0, message)
         total_length += message_length
     
-    # Check for special "goodbye" command
-        if "goodbye" in user_input.lower():
-            chat_history.append({"role": "assistant", "content": "Goodbye! Have a great day!"})
-            logging.info("Assistant: Goodbye! Have a great day!")
-            # Stop the assistant
-            stop_event.set()
-            return
-
+    
     response_text = "No document uploaded for context. Please upload a PDF."
     if st.session_state.embeddings_initialized:
         conversation_context = f"{system_prompt}\n" + "\n".join(
