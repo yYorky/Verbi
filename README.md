@@ -1,5 +1,11 @@
 # VERBI RAG - Voice-Assisted RAG Chatbot for PDFs 🎙️📄
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/yYorky/Verbi-RAG/refs/heads/main/static/chatbot%20image.png" alt="Chatbot Image" width="960" height="540">
+</p>
+
+<p align="center">
+
 ## Motivation ✨
 
 **Verbi RAG** is a Streamlit-based application designed to provide a seamless **voice-assisted Retrieval-Augmented Generation (RAG)** chatbot experience on **PDF documents**. 
@@ -24,6 +30,8 @@ This app builds on the modular architecture of the original Verbi repository (ht
 ---
 
 ## User Interface 🖥️
+
+![](https://raw.githubusercontent.com/yYorky/Verbi-RAG/refs/heads/main/static/Verbi%20RAG.JPG)
 
 ### Upload PDFs
 - Add your PDF file via the **sidebar** to load content into the app for context-aware RAG.
