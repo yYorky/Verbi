@@ -1,8 +1,6 @@
 # VERBI RAG - Voice-Assisted RAG Chatbot for PDFs 🎙️📄
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/yYorky/Verbi-RAG/refs/heads/main/static/chatbot%20image.png" alt="Chatbot Image" width="960" height="540">
-</p>
+![](https://raw.githubusercontent.com/yYorky/Verbi-RAG/refs/heads/main/static/chatbot%20image.png)
 
 <p align="center">
 
