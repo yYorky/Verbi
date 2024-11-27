@@ -59,8 +59,7 @@ def text_to_speech(model: str, api_key:str, text:str, output_file_path:str, loca
         
         elif model == "cartesia":
             client = Cartesia(api_key=api_key)
-            # voice_name = "Barbershop Man"
-            voice_id = "f114a467-c40a-4db8-964d-aaba89cd08fa"#"a0e99841-438c-4a64-b679-ae501e7d6091"
+            voice_id = "156fb8d2-335b-4950-9cb3-a2d33befec77" #Helpful Woman"
             voice = client.voices.get(id=voice_id)
 
             # You can check out our models at https://docs.cartesia.ai/getting-started/available-models

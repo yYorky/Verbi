@@ -19,7 +19,6 @@ init(autoreset=True)
 
 import threading
 
-
 def main():
     """
     Main function to run the voice assistant.
@@ -27,10 +26,10 @@ def main():
     chat_history = [
         {"role": "system", "content": """ You are a helpful Assistant called Verbi. 
          You are friendly and fun and you will help the users with their requests.
-         Your answers are short and concise. """}
+         Your answers are short and concise and in conversation form. """}
     ]
 
-    while True:
+    while True: 
         try:
             # Record audio from the microphone and save it as 'test.wav'
             record_audio(Config.INPUT_AUDIO)

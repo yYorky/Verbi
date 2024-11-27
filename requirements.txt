@@ -35,3 +35,8 @@ cartesia
 soundfile
 ollama
 pydub
+streamlit
+langchain_google_genai
+langchain-groq
+langchain_community
+flask
