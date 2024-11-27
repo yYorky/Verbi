@@ -2,7 +2,7 @@ import streamlit as st
 import logging
 import os
 import tempfile
-from voice_assistant.audio import record_audio
+from voice_assistant.audio import record_audio, play_audio
 from voice_assistant.transcription import transcribe_audio
 from voice_assistant.text_to_speech import text_to_speech
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
@@ -15,7 +15,6 @@ from langchain.chains import ConversationalRetrievalChain
 from dotenv import load_dotenv
 from voice_assistant.config import Config
 from voice_assistant.api_key_manager import get_transcription_api_key, get_tts_api_key
-import htmlTemplates  # Importing the HTML templates and CSS
 
 # Load environment variables
 load_dotenv()
@@ -24,15 +23,27 @@ groq_api_key = os.getenv("GROQ_API_KEY")
 # Initialize logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
+# Define the system prompt
+system_prompt = """You are a helpful Assistant called Verbi. 
+You are friendly, concise, and conversational. Maintain a warm and engaging tone throughout the conversation and aim to make the interaction enjoyable."""
+
 # Initialize Streamlit app
 st.set_page_config(page_title="Verbi RAG Chatbot", layout="wide")
 
 # Add a header with an image
 st.markdown("<h1 style='text-align: center;'>Verbi RAG Chatbot</h1>", unsafe_allow_html=True)
-st.image("Verbi\static\chatbot image.png", use_column_width=True)
 
-# Inject the CSS from htmlTemplates.py
-st.markdown(htmlTemplates.css, unsafe_allow_html=True)
+# Add resized image with a round border using HTML and CSS
+st.markdown(
+    """
+    <div style='text-align: center;'>
+        <img src="https://raw.githubusercontent.com/yYorky/Verbi/refs/heads/main/static/chatbot%20image.png" 
+             style="width: 200px; height: 200px; border-radius: 50%; object-fit: cover; border: 3px solid #4CAF50;">
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 # Ensure `chat_history` is part of session state
 if "chat_history" not in st.session_state:
@@ -94,17 +105,6 @@ if uploaded_file and not st.session_state.embeddings_initialized:
         st.write("Processing the uploaded document...")
         initialize_embeddings()
 
-# Function to render chat messages using HTML templates
-def render_chat_messages():
-    chat_container = '<div class="chat-container">'
-    for message in reversed(st.session_state.chat_history):
-        if message["role"] == "user":
-            chat_container += htmlTemplates.user_template.replace("{{MSG}}", message["content"])
-        elif message["role"] == "assistant":
-            chat_container += htmlTemplates.bot_template.replace("{{MSG}}", message["content"]).replace("{{THOUGHT_PROCESS}}", message.get("thought_process", ""))
-    chat_container += '</div>'
-    st.markdown(chat_container, unsafe_allow_html=True)
-
 # Function to handle voice assistant interaction
 def handle_voice_assistant():
     if not st.session_state.get("conversation_chain"):
@@ -130,22 +130,63 @@ def handle_voice_assistant():
     st.session_state.chat_history.append({"role": "user", "content": user_input})
     st.info(f"You said: {user_input}")
 
+    max_context_length = 2000
+    system_prompt_length = len(system_prompt.split())
+    truncated_chat_history = []
+    total_length = system_prompt_length
+
+    for message in reversed(st.session_state.chat_history):
+        message_length = len(message["content"].split())
+        if total_length + message_length > max_context_length:
+            break
+        truncated_chat_history.insert(0, message)
+        total_length += message_length
+    
+    # Check for special "goodbye" command
+        if "goodbye" in user_input.lower():
+            chat_history.append({"role": "assistant", "content": "Goodbye! Have a great day!"})
+            logging.info("Assistant: Goodbye! Have a great day!")
+            # Stop the assistant
+            stop_event.set()
+            return
+
     response_text = "No document uploaded for context. Please upload a PDF."
     if st.session_state.embeddings_initialized:
-        conversation_context = "\n".join(
-            [f"{message['role']}: {message['content']}" for message in st.session_state.chat_history]
+        conversation_context = f"{system_prompt}\n" + "\n".join(
+            [f"{message['role']}: {message['content']}" for message in truncated_chat_history]
         )
         response = st.session_state.conversation_chain.invoke({"question": conversation_context})
         response_text = response["answer"]
-    
+        
+        # Ensure the response is concise and conversational
+        response_text = response_text.split('.')[0]  # Take only the first sentence to make it concise
+        
     st.session_state.chat_history.append({"role": "assistant", "content": response_text})
     st.success(f"Assistant: {response_text}")
 
+    output_file = "output.mp3"
+    tts_api_key = get_tts_api_key()
+    text_to_speech(Config.TTS_MODEL, tts_api_key, response_text, output_file, Config.LOCAL_MODEL_PATH)
+
 # Main UI
 st.markdown("<div style='position: fixed; top: 10px; width: 100%; text-align: center;'>", unsafe_allow_html=True)
-if st.button("Record and Ask"):
-    handle_voice_assistant()
-st.markdown("</div>", unsafe_allow_html=True)
 
-# Render chat messages
-render_chat_messages()
+# Create nine columns
+col1, col2, col3 = st.columns(3)
+
+# Place the button in the center column
+with col1:
+    pass  # Empty columns for spacing
+with col3:
+    pass  # Empty columns for spacing
+with col2:
+    if st.button("Click to talk"):
+        handle_voice_assistant()        
+        
+        # Display chat history dynamically
+        st.markdown("### Chat History")
+        for message in st.session_state.chat_history:
+            if message["role"] == "user":
+                st.markdown(f"**You:** {message['content']}")
+            elif message["role"] == "assistant":
+                st.markdown(f"**Verbi:** {message['content']}")
